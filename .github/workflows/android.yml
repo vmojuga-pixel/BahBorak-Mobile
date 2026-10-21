@@ -21,30 +21,31 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
           
-      - name: Setup Rust
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        
+      - name: Install NDK and Build Tools
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "ndk;26.1.10909125" "platforms;android-34" "build-tools;34.0.0"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+          
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
           
-      - name: Install NDK (Robust)
-        run: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/tools/bin
-          
-          echo "Menerima lesen Android..."
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          
-          echo "Memasang NDK..."
-          sdkmanager "ndk;26.1.10909125"
-          
-          echo "NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
-          
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk
+        
       - name: Install dependencies
         run: npm install
         
       - name: Init Tauri Android
         run: npx tauri android init
-        
+        env:
+          NDK_HOME: ${{ env.NDK_HOME }}
+          
       - name: Build App
         uses: tauri-apps/tauri-action@v0
         env:
