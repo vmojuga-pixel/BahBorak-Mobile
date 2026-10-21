@@ -26,11 +26,17 @@ jobs:
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
           
-      - name: Install NDK
+      - name: Install NDK (Robust)
         run: |
-          echo "ANDROID_HOME is set to: $ANDROID_HOME"
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/tools/bin
+          
+          echo "Menerima lesen Android..."
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          
+          echo "Memasang NDK..."
           sdkmanager "ndk;26.1.10909125"
+          
           echo "NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
           
       - name: Install dependencies
