@@ -1,0 +1,22 @@
+name: Build Android APK
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android }
+      - uses: actions/setup-java@v4
+        with: { distribution: 'zulu', java-version: '17' }
+      - uses: android-actions/setup-android@v3
+      - run: npm install
+      - uses: tauri-apps/tauri-action@v0
+        env: { NDK_VERSION: "26.1.10909125", GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
+        with: { args: --target aarch64-linux-android }
+      - uses: actions/upload-artifact@v4
+        with: { name: BahBorak-APK, path: src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk }
